@@ -9,7 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## PROJECT DESCRIPTION
+
+**Objective:**
+
+
+**Data Set:**
+
+
+
 ```{r}
-Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/degrees-that-pay-backcsv.csv")
+Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/salaries-by-regioncsv.csv")
 ```
+
+
 
