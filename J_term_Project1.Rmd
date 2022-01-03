@@ -1,0 +1,15 @@
+---
+title: "J_term_Project1"
+author: "Kent Williams"
+date: "1/3/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/degrees-that-pay-backcsv.csv")
+```
+
