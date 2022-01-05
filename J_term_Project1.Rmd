@@ -9,23 +9,209 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## PROJECT DESCRIPTION
-
-**Objective:**
-
-
-**Data Set:**
-
 ```{r}
+# Import necessary packages
+library(e1071)
+library(tidyverse)
+library(plotly)
+library(htmltools)
+library(devtools)
+library(caret)
+library(NbClust)
+library(reshape2)
+library(rvest)
+library(magrittr)
+library(stringr)
+
+# remotes::install_version("cowplot", "0.9.2")
+library(cowplot)
+# install.packages('ggmap')
+library(ggmap)
+# install.packages("maps")
+library(maps)
+
 library(dplyr)
 ```
 
+```{r}
+Data = read.csv('~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/College_Data_Project1.csv')
+Data <- mutate(Data, acceptance_rate = Accept / Apps)
+Data <- Data[-519,]
+# Remove salary from the dataset, save as vector for visualization at the end
+Data1 <- Data[-519,c(6,7,10,18)]
+```
 
+```{r}
+###EDA
+#find correlations for variable selection
+salary = as.numeric(Data[,"Median.Salary"])
+length(salary)
+
+sfratio = as.numeric(Data[,"S.F.Ratio"])
+gradrate = as.numeric(Data[,"Grad.Rate"])
+top10 = as.numeric(Data[,"Top10perc"])
+tuition = as.numeric(Data[, "Outstate"])
+Expenditure = as.numeric(Data[, "Expend"])
+top25 = as.numeric(Data[, "Top25perc"])
+personal_spending = as.numeric(Data[,"Personal"])
+alumni_donation = as.numeric(Data[, "perc.alumni"])
+undergrad_num = as.numeric(Data[, "F.Undergrad"])
+Undergrad_part_num = as.numeric(Data[, "P.Undergrad"])
+board_room = as.numeric(Data[, "Room.Board"])
+
+
+
+
+#WAYS TO CHECK CORRELATION BETWEEN VARIABLES AND SALARY
+cor(gradrate, salary, method = c("pearson", "kendall", "spearman"))
+cor(top10, salary, method = c("pearson", "kendall", "spearman"))
+cor(Expenditure, salary, method=c("pearson", "kendall", "spearman"))
+cor(tuition, salary, method=c("pearson", "kendall", "spearman"))
+cor(sfratio, salary, method=c("pearson", "kendall", "spearman"))
+cor(top25, salary, method=c("pearson", "kendall", "spearman"))
+cor(personal_spending, salary, method=c("pearson", "kendall", "spearman"))
+cor(alumni_donation, salary, method=c("pearson", "kendall", "spearman"))
+cor(undergrad_num, salary, method=c("pearson", "kendall", "spearman"))
+cor(Undergrad_part_num, salary, method=c("pearson", "kendall", "spearman"))
+cor(board_room, salary, method=c("pearson", "kendall", "spearman"))
+
+
+
+###Scatter plots for correlated variables
+plot(top10, salary)
+plot(gradrate, salary)
+plot(sfratio, salary)
+plot(tuition, salary)
+plot(Expenditure, salary)
+plot(top25, salary)
+```
+
+```{r}
+Table = summarise_at(group_by(Data1,State),vars(Median.Salary),funs(mean(.,na.rm=TRUE)))
+```
+
+```{r include=FALSE}
+# Save pre-normalized values
+#income_ <- countries$income
+#life_expec_ <- countries$life_expec
+#gdpp_ <- countries$gdpp
+```
+
+```{r}
+# Min Max Scaler Function
+normalize <- function(x){
+ (x - min(x)) / (max(x) - min(x))
+}
+
+# Subset Numeric Variables and Apply Normalize Function to Each Column
+num_fields = names(select_if(Data1, is.numeric))
+Data1[num_fields] <- as_tibble(lapply(Data1[num_fields], normalize))
+```
+
+### Step 6 — Initial K-Means Model
+```{r include=FALSE}
+# Set Random State Seed
+set.seed(42)
+```
+
+```{r}
+Data1_kmeans = kmeans(
+  Data1,
+  centers=2,
+  algorithm="Lloyd",
+  iter.max=30
+)
+
+Data1_kmeans
+```
+**Evaluate Cluster Quality**
+```{r echo=FALSE}
+# ----- Evaluate the quality of the clustering -----
+
+# Inter-cluster variance (betweenss): sum of the distances between points from different clusters.
+num_= Data1_kmeans$betweenss
+
+# Total variance (totss): sum of the distances between all the points in the data set.
+denom_ = Data1_kmeans$totss
+
+# Variance accounted for by clusters.
+var_exp_ = num_ / denom_
+cat('Variance Explained:', var_exp_)
+```
+
+#Determine optimal number of clusters
+```{r include=FALSE}
+# Function to Repeatedly Create K-Means Model with Different Numbers of Clusters
+  # return: variance explained by the clusters for each k
+
+#Method 1: Elbow Graph
+
+explained_variance = function(data_in, k){
+  set.seed(42)
+  kmeans_obj = kmeans(data_in, centers = k, algorithm = "Lloyd", iter.max = 30)
+  var_exp = kmeans_obj$betweenss / kmeans_obj$totss
+  var_exp  
+}
+
+explained_var = sapply(1:10, explained_variance, data_in = Data1)
+explained_var
+
+
+elbow_data = data.frame(k = 1:10, explained_var)
+
+ggplot(elbow_data, 
+       aes(x = k,  
+           y = explained_var)) + 
+  geom_point(size = 4) +           #<- sets the size of the data points
+  geom_line(size = 1) +            #<- sets the thickness of the line
+  xlab('k') + 
+  ylab('Inter-cluster Variance / Total Variance') + 
+  theme_light()
+
+
+#Method 2: Nbclust
+(nbclust_obj = NbClust(data = Data1, method = "kmeans"))
+nbclust_obj
+View(nbclust_obj$Best.nc)
+
+```
+
+```{r}
+#Run algorithm again with 3 centers.
+set.seed(42)
+Data1_kmeans = kmeans(
+  Data1,
+  centers=4,
+  algorithm="Lloyd",
+  iter.max=30
+)
+
+Data1_kmeans
+```
 
 
 ```{r}
-Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/College_Data_Project.csv")
-```
+#Visualizing output
+salary_clusters <- as.factor(Data1_kmeans$cluster)
+#salary_clusters
 
+ggplot(Data1, aes(x = top10, 
+                            ,
+                            color = salary,  #<- tell R how to color 
+                            #   the data points
+                            shape = salary_clusters)) + 
+  geom_point(size = 6) +
+  ggtitle("Tuition, top10 with salary") +
+  xlab("top10") +
+  ylab("tuition") +
+  scale_shape_manual(name = "Cluster", 
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3"),
+                     values = c("1", "2", "3")) +
+  #scale_color_manual(name = "Salary",         #<- tell R which colors to use and
+                     #   which labels to include in the legend
+                    # labels = c("Lowest", "Low", "High", "Highest"),
+                     #values = c("red", "orange", "yellow", "green")) +
+  theme_light()
+```
 
 

@@ -1,0 +1,66 @@
+---
+title: "DS4002_project1"
+author: "Campbell Hogg"
+date: "1/4/2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+
+## PROJECT DESCRIPTION
+
+**Objective:**
+
+
+**Data Set:**
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(htmltools)
+library(devtools)
+#library(caret)
+library(NbClust)
+library(dplyr)
+```
+
+
+```{r}
+#read in the data
+Data = read.csv("~/Desktop/College_Data_Project1.csv")
+
+###EDA
+#find correlations for variable selection
+salary = as.numeric(Data[,"Median.Salary"])
+sfratio = as.numeric(Data[,"S.F.Ratio"])
+gradrate = as.numeric(Data[,"Grad.Rate"])
+top10 = as.numeric(Data[,"Top10perc"])
+
+#WAYS TO CHECK CORRELATION BETWEEN VARIABLES AND SALARY
+cor(gradrate, salary, method = c("pearson", "kendall", "spearman"))
+cor(top10, salary, method = c("pearson", "kendall", "spearman"))
+
+cor.test(top10, salary, method=c("pearson", "kendall", "spearman"))
+```
+
+```{r}
+###Scatter plots for correlated variables
+plot(top10, salary)
+plot(gradrate, salary)
+
+```
+
+```{r}
+#Normalize data
+
+normalize <- function(x){
+ (x - min(x)) / (max(x) - min(x))
+}
+```
+
+
