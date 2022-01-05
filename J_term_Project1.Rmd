@@ -14,7 +14,6 @@ knitr::opts_chunk$set(echo = TRUE)
 library(e1071)
 library(tidyverse)
 library(plotly)
-
 library(htmltools)
 library(devtools)
 library(caret)
@@ -23,14 +22,12 @@ library(reshape2)
 library(rvest)
 library(magrittr)
 library(stringr)
-
 # remotes::install_version("cowplot", "0.9.2")
 library(cowplot)
 # install.packages('ggmap')
 library(ggmap)
 # install.packages("maps")
 library(maps)
-
 library(dplyr)
 ```
 
@@ -39,7 +36,7 @@ Data = read.csv('~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/Col
 Data <- mutate(Data, acceptance_rate = Accept / Apps)
 Data <- Data[-519,]
 # Remove salary from the dataset, save as vector for visualization at the end
-Data1 <- Data[-519,c(6,7,10,18)]
+Data1 <- Data[,c(6,7,10,18)]
 ```
 
 ```{r}
@@ -85,17 +82,8 @@ plot(sfratio, salary)
 plot(tuition, salary)
 plot(Expenditure, salary)
 plot(top25, salary)
-```
 
-```{r}
 Table = summarise_at(group_by(Data1,State),vars(Median.Salary),funs(mean(.,na.rm=TRUE)))
-```
-
-```{r include=FALSE}
-# Save pre-normalized values
-#income_ <- countries$income
-#life_expec_ <- countries$life_expec
-#gdpp_ <- countries$gdpp
 ```
 
 ```{r}
@@ -109,13 +97,13 @@ num_fields = names(select_if(Data1, is.numeric))
 Data1[num_fields] <- as_tibble(lapply(Data1[num_fields], normalize))
 ```
 
-### Step 6 — Initial K-Means Model
-```{r include=FALSE}
-# Set Random State Seed
-set.seed(42)
-```
 
 ```{r}
+### Step 6 — Initial K-Means Model
+
+# Set Random State Seed
+set.seed(42)
+
 Data1_kmeans = kmeans(
   Data1,
   centers=2,
@@ -125,20 +113,7 @@ Data1_kmeans = kmeans(
 
 Data1_kmeans
 ```
-**Evaluate Cluster Quality**
-```{r echo=FALSE}
-# ----- Evaluate the quality of the clustering -----
 
-# Inter-cluster variance (betweenss): sum of the distances between points from different clusters.
-num_= Data1_kmeans$betweenss
-
-# Total variance (totss): sum of the distances between all the points in the data set.
-denom_ = Data1_kmeans$totss
-
-# Variance accounted for by clusters.
-var_exp_ = num_ / denom_
-cat('Variance Explained:', var_exp_)
-```
 
 #Determine optimal number of clusters
 ```{r include=FALSE}
@@ -196,8 +171,7 @@ Data1_kmeans
 salary_clusters <- as.factor(Data1_kmeans$cluster)
 #salary_clusters
 
-ggplot(Data1, aes(x = top10, 
-                            ,
+ggplot(Data1, aes(x = Data1$Top10perc, y = Data1$Outstate,
                             color = salary,  #<- tell R how to color 
                             #   the data points
                             shape = salary_clusters)) + 
@@ -206,8 +180,8 @@ ggplot(Data1, aes(x = top10,
   xlab("top10") +
   ylab("tuition") +
   scale_shape_manual(name = "Cluster", 
-                     labels = c("Cluster 1", "Cluster 2", "Cluster 3"),
-                     values = c("1", "2", "3")) +
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4"),
+                     values = c("1", "2", "3", "4")) +
   #scale_color_manual(name = "Salary",         #<- tell R which colors to use and
                      #   which labels to include in the legend
                     # labels = c("Lowest", "Low", "High", "Highest"),
