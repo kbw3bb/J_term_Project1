@@ -16,10 +16,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 **Data Set:**
 
+```{r}
+library(dplyr)
+```
+
+
 
 
 ```{r}
-Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/salaries-by-regioncsv.csv")
+Data = read.csv("~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/College_Data_Project.csv")
 ```
 
 
