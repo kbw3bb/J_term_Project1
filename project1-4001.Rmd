@@ -35,7 +35,7 @@ library(dplyr)
 Data = read.csv("~/Desktop/College_Data_Project1.csv")
 
 ###EDA
-#find correlations
+#find correlations for variable selection
 salary = as.numeric(Data[,"Median.Salary"])
 sfratio = as.numeric(Data[,"S.F.Ratio"])
 gradrate = as.numeric(Data[,"Grad.Rate"])
@@ -46,13 +46,21 @@ cor(gradrate, salary, method = c("pearson", "kendall", "spearman"))
 cor(top10, salary, method = c("pearson", "kendall", "spearman"))
 
 cor.test(top10, salary, method=c("pearson", "kendall", "spearman"))
+```
 
+```{r}
 ###Scatter plots for correlated variables
 plot(top10, salary)
 plot(gradrate, salary)
 
 ```
 
+```{r}
+#Normalize data
+
+normalize <- function(x){
+ (x - min(x)) / (max(x) - min(x))
+}
 ```
 
 
