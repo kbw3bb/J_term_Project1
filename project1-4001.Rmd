@@ -1,0 +1,51 @@
+---
+title: "DS4002_project1"
+author: "Campbell Hogg"
+date: "1/4/2022"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r}
+
+## PROJECT DESCRIPTION
+
+**Objective:**
+
+
+**Data Set:**
+
+```{r}
+library(tidyverse)
+library(plotly)
+library(htmltools)
+library(devtools)
+#library(caret)
+library(NbClust)
+library(dplyr)
+```
+
+
+```{r}
+#read in the data
+Data = read.csv("~/Desktop/College_Data_Project1.csv")
+
+###EDA
+#find correlations
+salary = as.numeric(Data[,"Median.Salary"])
+sfratio = as.numeric(Data[,"S.F.Ratio"])
+gradrate = as.numeric(Data[,"Grad.Rate"])
+
+#WAYS TO CHECK CORRELATION BETWEEN VARIABLES AND SALARY
+cor(sfratio, gradrate, method = c("pearson", "kendall", "spearman"))
+cor.test(sfratio, salary, method=c("pearson", "kendall", "spearman"))
+
+```
+
+```
+
+
