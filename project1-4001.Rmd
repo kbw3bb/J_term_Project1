@@ -14,12 +14,6 @@ knitr::opts_chunk$set(echo = FALSE)
 
 ## PROJECT DESCRIPTION
 
-**Objective:**
-
-
-**Data Set:**
-
-```{r}
 library(tidyverse)
 library(plotly)
 library(htmltools)
@@ -33,6 +27,17 @@ library(dplyr)
 ```{r}
 #read in the data
 Data = read.csv("~/Desktop/College_Data_Project1.csv")
+Data = Data[-c(519),]
+
+
+#add a new column for acceptance
+Data <- mutate(Data, acceptance_rate = Accept / Apps)
+View(Data)
+
+#calculate mean salary for college grads by state
+mean_salaries = Data %>%
+  group_by(State) %>%
+  summarize(mean_salary = mean(Median.Salary, na.rm = T))
 
 ###EDA
 #find correlations for variable selection
@@ -40,10 +45,12 @@ salary = as.numeric(Data[,"Median.Salary"])
 sfratio = as.numeric(Data[,"S.F.Ratio"])
 gradrate = as.numeric(Data[,"Grad.Rate"])
 top10 = as.numeric(Data[,"Top10perc"])
+acceptance_rate = as.numeric(Data[,"acceptance_rate"])
 
 #WAYS TO CHECK CORRELATION BETWEEN VARIABLES AND SALARY
 cor(gradrate, salary, method = c("pearson", "kendall", "spearman"))
 cor(top10, salary, method = c("pearson", "kendall", "spearman"))
+cor(acceptance_rate, salary, method = c("pearson", "kendall", "spearman"))
 
 cor.test(top10, salary, method=c("pearson", "kendall", "spearman"))
 ```
@@ -52,6 +59,7 @@ cor.test(top10, salary, method=c("pearson", "kendall", "spearman"))
 ###Scatter plots for correlated variables
 plot(top10, salary)
 plot(gradrate, salary)
+plot(acceptance_rate, salary)
 
 ```
 
@@ -61,6 +69,11 @@ plot(gradrate, salary)
 normalize <- function(x){
  (x - min(x)) / (max(x) - min(x))
 }
+
+Data$acceptance_rate <- normalize(Data$acceptance_rate)
+
+
 ```
+
 
 
