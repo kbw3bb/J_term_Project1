@@ -277,6 +277,7 @@ Data$clusters = as.numeric(Data$clusters) #save clusters as numeric type to take
 clust_states = Data %>%
   group_by(State) %>%
   summarize(mean_clust = mean(clusters, na.rm = T))
+clust_states$mean_clust= round(clust_states$mean_clust, digits = 0) #maybe better for visualization, could do both
 ```
 
 
@@ -286,7 +287,7 @@ clust_states = Data %>%
 Data$State <- tolower(Data$State) #lower case
 
 
-# Retrieve the states map data and merge with crime data
+# Retrieve the states map data and merge with salary cluster data
 states_map <- map_data("state")
 states_map =rename(states_map, State = region)
 cluster_map <- left_join(states_map, clust_states, by = "State")
@@ -294,10 +295,20 @@ cluster_map <- left_join(states_map, clust_states, by = "State")
 # Create the map for average cluster for each state
 ggplot(cluster_map, aes(long, lat, group = group))+
   geom_polygon(aes(fill = mean_clust), color = "white")+
-  scale_fill_viridis_c(option = "C")
+  scale_fill_viridis_c(option = "D")
 
 #create map for average college graduate salary by state
+mean_salaries$State <- tolower(mean_salaries$State) #lower case
+salary_map <- left_join(states_map, mean_salaries, by = "State")
 
+ggplot(salary_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = mean_salary), color = "white")+
+  scale_fill_viridis_c(option = "D")
+
+#check # of state occurences
+dplyr::count(Data, State, sort = TRUE)
+
+mean_salaries["salary group"]
 ```
 
 
