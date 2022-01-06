@@ -157,7 +157,7 @@ View(nbclust_obj$Best.nc)
 set.seed(42)
 Data1_kmeans = kmeans(
   Data1,
-  centers=4,
+  centers=3,
   algorithm="Lloyd",
   iter.max=30
 )
@@ -171,7 +171,7 @@ Data1_kmeans
 salary_clusters <- as.factor(Data1_kmeans$cluster)
 #salary_clusters
 
-ggplot(Data1, aes(x = Data1$Top10perc, y = Data1$Outstate,
+ggplot(Data, aes(x = Data$Top25perc, y = Data$Outstate,
                             color = salary,  #<- tell R how to color 
                             #   the data points
                             shape = salary_clusters)) + 
@@ -188,5 +188,30 @@ ggplot(Data1, aes(x = Data1$Top10perc, y = Data1$Outstate,
                      #values = c("red", "orange", "yellow", "green")) +
   theme_light()
 ```
+
+
+```{r}
+Data$clusters <- (salary_clusters)
+
+#removes characters that aren't going to be parseable
+#Data1$Player <- gsub("[^[:alnum:]]", "", nba$Player)
+
+# Use plotly to do a 3d imaging 
+fig <- plot_ly(Data, 
+               type = "scatter3d",
+               mode="markers",
+               symbol = ~clusters,
+               x = ~Data$Top25perc, 
+               y = ~Data$Outstate, 
+               z = ~Data$Expend,
+               color = ~salary, # ~ means "identify just this variable and use all layers (plotly)
+               text = ~paste('School: ', X,
+                             "Salary: ", Median.Salary,
+                              'Cluster: ', clusters))
+fig
+```
+
+
+
 
 
