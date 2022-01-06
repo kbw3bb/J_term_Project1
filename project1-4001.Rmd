@@ -296,7 +296,7 @@ ggplot(cluster_map, aes(long, lat, group = group))+
   geom_polygon(aes(fill = mean_clust), color = "white")+
   scale_fill_viridis_c(option = "C")
 
-salary_map <- left_join()
+#create map for average college graduate salary by state
 
 ```
 
