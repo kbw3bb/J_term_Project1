@@ -267,15 +267,38 @@ fig
 
 
 ```{r}
-#groupby cluster and view descriptive statistics
+#group by cluster and view descriptive statistics
 clust_summaries = Data %>%
   group_by(clusters) %>%
   summarize(mean_salary = mean(Median.Salary, na.rm = T), mean_out_state_tuiton = mean(Outstate, na.rm = T),          mean_expenditure = mean(Expend, na.rm = T), mean_top25 = mean(Top25perc, na.rm = T))
 
+#find average cluster for each state
+Data$clusters = as.numeric(Data$clusters) #save clusters as numeric type to take average for each states
+clust_states = Data %>%
+  group_by(State) %>%
+  summarize(mean_clust = mean(clusters, na.rm = T))
 ```
 
 
+```{r}
+#maps
 
+Data$State <- tolower(Data$State) #lower case
+
+
+# Retrieve the states map data and merge with crime data
+states_map <- map_data("state")
+states_map =rename(states_map, State = region)
+cluster_map <- left_join(states_map, clust_states, by = "State")
+
+# Create the map for average cluster for each state
+ggplot(cluster_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = mean_clust), color = "white")+
+  scale_fill_viridis_c(option = "C")
+
+salary_map <- left_join()
+
+```
 
 
 
