@@ -29,6 +29,9 @@ library(ggmap)
 # install.packages("maps")
 library(maps)
 library(dplyr)
+
+install.packages('leaflet')
+library(leaflet)
 ```
 
 ```{r}
@@ -210,6 +213,18 @@ fig <- plot_ly(Data,
                               'Cluster: ', clusters))
 fig
 ```
+
+```{r}
+states_map <- map_data("state")
+states_map2 <- rename(states_map, State = region)
+salary_map <- left_join(states_map2, Data, by = "State")
+
+ggplot(salary_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = Median.Salary), color = "white")+
+  scale_fill_viridis_c(option = "C")
+
+```
+
 
 
 

@@ -297,7 +297,9 @@ head(cluster_df)
 ```{r echo=FALSE}
 # Load Map Data
 map.world <- map_data("world")
+
 head(map.world)
+View(map.world)
 ```
 
 ```{r include=FALSE}
