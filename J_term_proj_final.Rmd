@@ -1,15 +1,25 @@
 ---
-title: "J_term_Project1"
+title: "Jterm_project2"
 author: "Kent Williams"
-date: "1/3/2022"
+date: "1/7/2022"
 output: html_document
 ---
 
+---
+title: "DS4002_project1"
+author: "Campbell Hogg"
+date: "1/4/2022"
+output: ioslides_presentation
+---
+
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
+
 ```{r}
+
+## PROJECT DESCRIPTION
 # Import necessary packages
 library(e1071)
 library(tidyverse)
@@ -29,25 +39,29 @@ library(ggmap)
 # install.packages("maps")
 library(maps)
 library(dplyr)
-
-install.packages('leaflet')
-library(leaflet)
 ```
 
+
 ```{r}
-Data = read.csv('~/Desktop/DS_3001_Notes/DS-3001 - MAIN REPO/J_term_Project1/College_Data_Project1.csv')
-Data <- mutate(Data, acceptance_rate = Accept / Apps)
-Data <- Data[-519,]
+#read in the data
+Data = read.csv("~/Desktop/DS4001/College_Data_Project1.csv")
+Data = Data[-c(519),]
 # Remove salary from the dataset, save as vector for visualization at the end
 Data1 <- Data[,c(6,7,10,18)]
-```
 
-```{r}
+#add a new column for acceptance
+Data <- mutate(Data, acceptance_rate = Accept / Apps)
+View(Data)
+
+#calculate mean salary for college grads by state
+mean_salaries = Data %>%
+  group_by(State) %>%
+  summarize(mean_salary = mean(Median.Salary, na.rm = T))
+
 ###EDA
 #find correlations for variable selection
 salary = as.numeric(Data[,"Median.Salary"])
 length(salary)
-
 sfratio = as.numeric(Data[,"S.F.Ratio"])
 gradrate = as.numeric(Data[,"Grad.Rate"])
 top10 = as.numeric(Data[,"Top10perc"])
@@ -59,10 +73,6 @@ alumni_donation = as.numeric(Data[, "perc.alumni"])
 undergrad_num = as.numeric(Data[, "F.Undergrad"])
 Undergrad_part_num = as.numeric(Data[, "P.Undergrad"])
 board_room = as.numeric(Data[, "Room.Board"])
-
-
-
-
 #WAYS TO CHECK CORRELATION BETWEEN VARIABLES AND SALARY
 cor(gradrate, salary, method = c("pearson", "kendall", "spearman"))
 cor(top10, salary, method = c("pearson", "kendall", "spearman"))
@@ -76,7 +86,11 @@ cor(undergrad_num, salary, method=c("pearson", "kendall", "spearman"))
 cor(Undergrad_part_num, salary, method=c("pearson", "kendall", "spearman"))
 cor(board_room, salary, method=c("pearson", "kendall", "spearman"))
 
+top10 = as.numeric(Data1[,"Top10perc"])
+tuition = as.numeric(Data1[, "Outstate"])
 
+Expenditure = as.numeric(Data1[, "Expend"])
+top25 = as.numeric(Data1[, "Top25perc"])
 
 ###Scatter plots for correlated variables
 plot(top10, salary)
@@ -85,12 +99,23 @@ plot(sfratio, salary)
 plot(tuition, salary)
 plot(Expenditure, salary)
 plot(top25, salary)
-
 Table = summarise_at(group_by(Data1,State),vars(Median.Salary),funs(mean(.,na.rm=TRUE)))
 ```
 
+
 ```{r}
-# Min Max Scaler Function
+###Scatter plots for correlated variables
+plot(top10, salary)
+plot(gradrate, salary)
+plot(acceptance_rate, salary)
+
+plot(top10,top25)
+
+```
+
+```{r}
+#Normalize data
+
 normalize <- function(x){
  (x - min(x)) / (max(x) - min(x))
 }
@@ -98,46 +123,37 @@ normalize <- function(x){
 # Subset Numeric Variables and Apply Normalize Function to Each Column
 num_fields = names(select_if(Data1, is.numeric))
 Data1[num_fields] <- as_tibble(lapply(Data1[num_fields], normalize))
+
 ```
 
 
 ```{r}
 ### Step 6 — Initial K-Means Model
-
 # Set Random State Seed
 set.seed(42)
-
 Data1_kmeans = kmeans(
   Data1,
   centers=2,
   algorithm="Lloyd",
   iter.max=30
 )
-
 Data1_kmeans
 ```
-
 
 #Determine optimal number of clusters
 ```{r include=FALSE}
 # Function to Repeatedly Create K-Means Model with Different Numbers of Clusters
   # return: variance explained by the clusters for each k
-
 #Method 1: Elbow Graph
-
 explained_variance = function(data_in, k){
   set.seed(42)
   kmeans_obj = kmeans(data_in, centers = k, algorithm = "Lloyd", iter.max = 30)
   var_exp = kmeans_obj$betweenss / kmeans_obj$totss
   var_exp  
 }
-
 explained_var = sapply(1:10, explained_variance, data_in = Data1)
 explained_var
-
-
 elbow_data = data.frame(k = 1:10, explained_var)
-
 ggplot(elbow_data, 
        aes(x = k,  
            y = explained_var)) + 
@@ -146,35 +162,45 @@ ggplot(elbow_data,
   xlab('k') + 
   ylab('Inter-cluster Variance / Total Variance') + 
   theme_light()
-
-
 #Method 2: Nbclust
 (nbclust_obj = NbClust(data = Data1, method = "kmeans"))
 nbclust_obj
 View(nbclust_obj$Best.nc)
-
 ```
 
+
 ```{r}
-#Run algorithm again with 3 centers.
+#Run the clustering algorithm with 4 clusters
 set.seed(42)
 Data1_kmeans = kmeans(
   Data1,
-  centers=3,
+  centers=4,
   algorithm="Lloyd",
   iter.max=30
 )
-
 Data1_kmeans
 ```
 
 
 ```{r}
-#Visualizing output
+
+#Run the clustering algorithm with 3 clusters
+set.seed(42)
+Data1_kmeans2 = kmeans(
+  Data1,
+  centers=3,
+  algorithm="Lloyd",
+  iter.max=30
+)
+Data1_kmeans2
+
+```
+
+```{r}
+#Visualizing output with 4 clusters
 salary_clusters <- as.factor(Data1_kmeans$cluster)
 #salary_clusters
-
-ggplot(Data, aes(x = Data$Top25perc, y = Data$Outstate,
+ggplot(Data1, aes(x = top25, y = tuition,
                             color = salary,  #<- tell R how to color 
                             #   the data points
                             shape = salary_clusters)) + 
@@ -185,34 +211,113 @@ ggplot(Data, aes(x = Data$Top25perc, y = Data$Outstate,
   scale_shape_manual(name = "Cluster", 
                      labels = c("Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4"),
                      values = c("1", "2", "3", "4")) +
-  #scale_color_manual(name = "Salary",         #<- tell R which colors to use and
-                     #   which labels to include in the legend
-                    # labels = c("Lowest", "Low", "High", "Highest"),
-                     #values = c("red", "orange", "yellow", "green")) +
+  #scale_color_manual(labels = c(">$40000", "$40000-$60000", "$60000-$80000", ">$80000"), values = colfunc(4)) +
+  theme_light()
+```
+
+```{r}
+#Visualizing output with 3 clusters
+salary_clusters2 <- as.factor(Data1_kmeans2$cluster)
+#salary_clusters
+ggplot(Data1, aes(x = top25, y = tuition,
+                            color = salary,  #<- tell R how to color 
+                            #   the data points
+                            shape = salary_clusters2)) + 
+  geom_point(size = 6) +
+  ggtitle("Tuition, top10 with salary") +
+  xlab("top10") +
+  ylab("tuition") +
+  scale_shape_manual(name = "Cluster", 
+                     labels = c("Cluster 1", "Cluster 2", "Cluster 3"),
+                     values = c("1", "2", "3")) +
+  scale_color_gradient(low="yellow", high = "red") +
   theme_light()
 ```
 
 
-```{r}
-Data$clusters <- (salary_clusters)
 
-#removes characters that aren't going to be parseable
-#Data1$Player <- gsub("[^[:alnum:]]", "", nba$Player)
+
+```{r}
+#Create a 3d version of the output
+#color will be a gradient for salary
+Data$clusters <- (salary_clusters2)
 
 # Use plotly to do a 3d imaging 
 fig <- plot_ly(Data, 
                type = "scatter3d",
                mode="markers",
                symbol = ~clusters,
-               x = ~Data$Top25perc, 
-               y = ~Data$Outstate, 
-               z = ~Data$Expend,
+               x = ~top25, 
+               y = ~tuition, 
+               z = ~Expenditure,
                color = ~salary, # ~ means "identify just this variable and use all layers (plotly)
                text = ~paste('School: ', X,
                              "Salary: ", Median.Salary,
-                              'Cluster: ', clusters))
+                             'Cluster: ', clusters)
+)
+
+#re-label axes
+axx <- list(
+  title = "Top 25%"
+)
+
+axy <- list(
+  title = "Tuition"
+)
+
+axz <- list(
+  title = "Expenditure"
+)
+fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
 fig
 ```
+
+
+```{r}
+#group by cluster and view descriptive statistics
+clust_summaries = Data %>%
+  group_by(clusters) %>%
+  summarize(mean_salary = mean(Median.Salary, na.rm = T), mean_out_state_tuiton = mean(Outstate, na.rm = T),          mean_expenditure = mean(Expend, na.rm = T), mean_top25 = mean(Top25perc, na.rm = T))
+
+#find average cluster for each state
+Data$clusters = as.numeric(Data$clusters) #save clusters as numeric type to take average for each states
+clust_states = Data %>%
+  group_by(State) %>%
+  summarize(mean_clust = mean(clusters, na.rm = T))
+clust_states$mean_clust= round(clust_states$mean_clust, digits = 0) #maybe better for visualization, could do both
+```
+
+
+```{r}
+#maps
+
+Data$State <- tolower(Data$State) #lower case
+
+
+# Retrieve the states map data and merge with salary cluster data
+states_map <- map_data("state")
+states_map =rename(states_map, State = region)
+cluster_map <- left_join(states_map, clust_states, by = "State")
+
+# Create the map for average cluster for each state
+ggplot(cluster_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = mean_clust), color = "white")+
+  scale_fill_viridis_c(option = "D")
+
+#create map for average college graduate salary by state
+mean_salaries$State <- tolower(mean_salaries$State) #lower case
+salary_map <- left_join(states_map, mean_salaries, by = "State")
+
+ggplot(salary_map, aes(long, lat, group = group))+
+  geom_polygon(aes(fill = mean_salary), color = "white")+
+  scale_fill_viridis_c(option = "D")
+
+#check # of state occurences
+dplyr::count(Data, State, sort = TRUE)
+
+mean_salaries["salary group"]
+```
+
 
 
 
